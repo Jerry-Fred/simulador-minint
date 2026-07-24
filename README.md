@@ -12,42 +12,14 @@ para testar a procura antes de avançar para as fases seguintes do plano.
 
 ## Como testar localmente
 
-Não precisas de instalar nada. Basta abrir `index.html` diretamente no
+Abrir `index.html` diretamente no
 browser, ou correr um servidor simples se preferires:
 
 ```bash
-python3 -m http.server 8000
+python -m http.server 8000
 # depois abre http://localhost:8000
 ```
 
-## Como publicar (GitHub Pages)
-
-1. Cria um repositório novo no GitHub e envia estes 4 ficheiros para a raiz
-   (ou para uma pasta `docs/`, se preferires).
-2. Em **Settings → Pages**, escolhe a branch `main` e a pasta `/ (root)`.
-3. Em poucos minutos o link público fica disponível
-   (ex: `https://jerry-fred.github.io/simulador-minint/`).
-
-Alternativa: importar o repositório na Vercel (deploy automático a cada push,
-sem configuração adicional — é um site estático puro).
-
-## Como adicionar as perguntas reais
-
-Edita `questions.js`. Cada pergunta segue este formato:
-
-```js
-{
-  category: "Direito Constitucional",
-  question: "Enunciado da pergunta...",
-  options: ["Opção A", "Opção B", "Opção C", "Opção D"],
-  answerIndex: 0, // índice da opção correta (0 = primeira)
-  explanation: "Texto mostrado depois de responder, certo ou errado."
-}
-```
-
-Podes ter quantas perguntas quiseres — o resto da aplicação (numeração,
-barra de progresso, resultado final) ajusta-se automaticamente ao tamanho
-do array `QUESTION_BANK`.
 
 ## Cores
 
@@ -88,7 +60,4 @@ quiseres simular também critérios físicos.)
 
 ## Próximo passo natural (Fase 2)
 
-Quando quiseres validar a procura e avançar, os pontos de entrada óbvios
-para adicionar conta/perfil/histórico sem reescrever tudo são:
-`startQuiz()` (para guardar tentativas associadas a um utilizador) e
-`finishQuiz()` (para persistir o resultado em vez de só o mostrar).
+Evolução para uma MVP2 e posteriormente um SaaS.
