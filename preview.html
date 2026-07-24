@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Admissão — MININT (pré-visualização)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+
+:root {
+  --paper:       #101B30;   /* fundo geral — navy escuro do site oficial */
+  --paper-deep:  #0B1626;   /* cabeçalho / tabs — o mais escuro */
+  --card:        #16233B;   /* fundo dos cartões */
+  --ink:         #FFFFFF;   /* títulos */
+  --ink-soft:    #A9B4C8;   /* texto secundário */
+  --stamp-red:   #D95D5D;   /* vermelho de erro (não é cor da marca, só feedback) */
+  --gold:        #F0A82D;   /* dourado/âmbar — destaque principal do site oficial */
+  --blue-accent: #2E6DA6;   /* azul de apoio — usado na barra de cotação do site */
+  --graphite:    #D7DEE8;   /* texto normal sobre fundo escuro */
+  --line:        rgba(255, 255, 255, 0.14);
+  --ok:          #4FBE7C;
+  --ok-bg:       rgba(79, 190, 124, 0.14);
+  --err-bg:      rgba(217, 93, 93, 0.14);
+
+  --font-display: 'Zilla Slab', Georgia, serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+  --font-mono:    'IBM Plex Mono', monospace;
+
+  --radius: 3px;
+}
+
+* { box-sizing: border-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--paper);
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(0,0,0,0.025) 0, transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(0,0,0,0.025) 0, transparent 40%);
+  color: var(--graphite);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
+
+.letterhead {
+  display: flex;
+  justify-content: flex-end;
+  padding: 14px 20px 0;
+}
+.letterhead__num {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+
+.sheet {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 8px 20px 40px;
+  min-height: 70vh;
+}
+
+.screen { animation: rise 0.35s ease both; }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Cover ---------- */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 28px 0 10px;
+}
+.cover__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 7vw, 3.4rem);
+  line-height: 1.02;
+  color: var(--ink);
+  margin: 0 0 18px;
+  border-bottom: 3px solid var(--ink);
+  padding-bottom: 20px;
+}
+.cover__lede {
+  font-size: 1.02rem;
+  color: var(--graphite);
+  max-width: 46ch;
+  margin: 0 0 28px;
+}
+.cover__meta {
+  display: flex;
+  gap: 28px;
+  margin: 0 0 34px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.cover__meta div { display: flex; flex-direction: column; gap: 4px; }
+.cover__meta dt {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.cover__meta dd { margin: 0; font-family: var(--font-display); font-size: 1.3rem; color: var(--blue-accent); }
+.cover__fineprint {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin-top: 14px;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 14px 26px;
+  border-radius: var(--radius);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+.btn--primary {
+  background: var(--gold);
+  color: var(--paper-deep);
+}
+.btn--primary:hover { background: #D9951F; }
+.btn--ghost {
+  background: transparent;
+  color: var(--ink-soft);
+  border-color: var(--line);
+}
+.btn--ghost:hover { border-color: var(--ink-soft); color: var(--ink); }
+
+/* ---------- Quiz ---------- */
+.quiz__header { margin: 26px 0 20px; }
+.quiz__tab {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: var(--paper-deep);
+  border: 1px solid var(--line);
+  border-bottom: none;
+  padding: 5px 12px;
+  border-radius: 3px 3px 0 0;
+}
+.quiz__track {
+  height: 6px;
+  background: var(--paper-deep);
+  border: 1px solid var(--line);
+}
+.quiz__track-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--gold);
+  transition: width 0.3s ease;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px 26px 24px;
+  box-shadow: 0 1px 0 rgba(27,42,70,0.05);
+}
+.card__category {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 10px;
+}
+.card__question {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.35rem;
+  color: var(--ink);
+  margin: 0 0 22px;
+  line-height: 1.3;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.option {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  text-align: left;
+  width: 100%;
+  background: var(--paper-deep);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 13px 16px;
+  font-family: var(--font-body);
+  font-size: 0.98rem;
+  color: var(--graphite);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.option:hover:not(:disabled) { border-color: var(--blue-accent); }
+.option:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.option__letter {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+.option:disabled { cursor: default; }
+.option.is-correct {
+  background: var(--ok-bg);
+  border-color: var(--ok);
+  color: var(--ok);
+}
+.option.is-wrong {
+  background: var(--err-bg);
+  border-color: var(--stamp-red);
+  color: var(--stamp-red);
+}
+.option.is-muted { opacity: 0.55; }
+
+.explanation {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--line);
+  animation: rise 0.25s ease both;
+}
+.explanation__verdict {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin: 0 0 6px;
+}
+.explanation__verdict.ok  { color: var(--ok); }
+.explanation__verdict.err { color: var(--stamp-red); }
+.explanation__text {
+  margin: 0;
+  color: var(--graphite);
+  font-size: 0.95rem;
+}
+
+.quiz__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 22px;
+}
+
+/* ---------- Result ---------- */
+.screen--result { text-align: center; padding-top: 12px; }
+
+.stamp {
+  --tilt: -6deg;
+  --stamp-color: var(--gold);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 168px;
+  height: 168px;
+  margin: 18px auto 8px;
+  border: 4px solid var(--stamp-color);
+  border-radius: 50%;
+  color: var(--stamp-color);
+  transform: rotate(var(--tilt)) scale(0.85);
+  opacity: 0;
+  animation: stampFall 0.5s cubic-bezier(.2,.9,.3,1.2) 0.15s forwards;
+  position: relative;
+}
+.stamp::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1.5px solid var(--stamp-color);
+  border-radius: 50%;
+}
+.stamp__word {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: 0.06em;
+}
+.stamp__score {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+}
+@keyframes stampFall {
+  0%   { opacity: 0; transform: rotate(var(--tilt)) scale(1.6); }
+  70%  { opacity: 1; }
+  100% { opacity: 1; transform: rotate(var(--tilt)) scale(0.85); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stamp { animation: none; opacity: 1; transform: rotate(var(--tilt)) scale(0.85); }
+}
+
+.result__title {
+  font-family: var(--font-display);
+  color: var(--ink);
+  font-size: 1.6rem;
+  margin: 6px 0 6px;
+}
+.result__summary {
+  color: var(--ink-soft);
+  margin: 0 0 30px;
+}
+
+.review {
+  list-style: none;
+  margin: 0 0 32px;
+  padding: 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.review__item {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 14px 16px;
+}
+.review__item.is-ok  { border-left-color: var(--ok); }
+.review__item.is-err { border-left-color: var(--stamp-red); }
+.review__q {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+.review__answer { margin: 0; font-size: 0.88rem; color: var(--graphite); }
+.review__answer b { color: inherit; }
+
+.result__actions { margin-bottom: 10px; }
+
+.foot {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  padding: 10px 20px 30px;
+}
+
+@media (max-width: 480px) {
+  .cover__meta { gap: 18px; flex-wrap: wrap; }
+  .card { padding: 22px 18px 20px; }
+  .quiz__footer { flex-direction: row; gap: 10px; }
+}
+
+</style>
+</head>
+<body>
+
+  <div class="letterhead" aria-hidden="true">
+    <span class="letterhead__num" id="processNum">PROC. Nº ——/2026</span>
+  </div>
+
+  <main class="sheet">
+
+    <!-- ECRÃ 1 — CAPA -->
+    <section class="screen screen--cover" id="screen-cover" data-screen>
+      <p class="eyebrow">República de Angola · Ministério do Interior</p>
+      <h1 class="cover__title">Simulado de<br>Admissão</h1>
+      <p class="cover__lede">
+        Um teste de preparação, sem inscrição e sem custo, para saberes
+        onde estás antes do exame real. Respostas corrigidas na hora,
+        com a explicação de cada uma.
+      </p>
+
+      <dl class="cover__meta">
+        <div><dt>Perguntas</dt><dd id="metaCount">10</dd></div>
+        <div><dt>Duração média</dt><dd>~6 min</dd></div>
+        <div><dt>Resultado</dt><dd>Imediato</dd></div>
+      </dl>
+
+      <button class="btn btn--primary" id="btnStart" type="button">
+        Iniciar simulado
+      </button>
+      <p class="cover__fineprint">Não é guardado nenhum dado. Podes repetir quantas vezes quiseres.</p>
+    </section>
+
+    <!-- ECRÃ 2 — QUIZ -->
+    <section class="screen screen--quiz" id="screen-quiz" data-screen hidden>
+      <header class="quiz__header">
+        <span class="quiz__tab" id="quizTab">Questão 01/10</span>
+        <div class="quiz__track" role="progressbar" aria-label="Progresso do simulado" aria-valuemin="0" aria-valuemax="100" id="progressBar">
+          <div class="quiz__track-fill" id="progressFill"></div>
+        </div>
+      </header>
+
+      <article class="card">
+        <p class="card__category" id="qCategory">Categoria</p>
+        <h2 class="card__question" id="qText">Pergunta</h2>
+
+        <div class="options" id="options" role="radiogroup" aria-label="Opções de resposta"></div>
+
+        <div class="explanation" id="explanation" hidden>
+          <p class="explanation__verdict" id="verdict"></p>
+          <p class="explanation__text" id="explanationText"></p>
+        </div>
+      </article>
+
+      <div class="quiz__footer">
+        <button class="btn btn--ghost" id="btnQuit" type="button">Terminar agora</button>
+        <button class="btn btn--primary" id="btnNext" type="button" hidden>Seguinte</button>
+      </div>
+    </section>
+
+    <!-- ECRÃ 3 — RESULTADO -->
+    <section class="screen screen--result" id="screen-result" data-screen hidden>
+      <div class="stamp" id="stamp" aria-hidden="true">
+        <span class="stamp__word" id="stampWord">APTO</span>
+        <span class="stamp__score" id="stampScore">10/10</span>
+      </div>
+
+      <h2 class="result__title" id="resultTitle">Resultado do simulado</h2>
+      <p class="result__summary" id="resultSummary"></p>
+
+      <ol class="review" id="review"></ol>
+
+      <div class="result__actions">
+        <button class="btn btn--primary" id="btnRestart" type="button">Repetir simulado</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <p>Protótipo de preparação · não é um serviço oficial do MININT.</p>
+  </footer>
+
+<script>
+/**
+ * Banco de perguntas — alinhado às categorias reais da Prova Escrita
+ * do Concurso Público de Ingresso Externo do MININT (candidaturas.minint.ao):
+ *   1. História de Angola
+ *   2. Organização Política e Administrativa da República de Angola
+ *   3. Noções gerais de Administração Pública
+ *   4. Organização e funcionamento do Ministério do Interior
+ *   5. Patriotismo
+ *
+ * Estrutura de cada pergunta:
+ *   category:    uma das 5 categorias acima
+ *   question:    enunciado
+ *   options:     4 alternativas (string)
+ *   answerIndex: índice (0-3) da opção correta
+ *   explanation: texto mostrado após responder, certo ou errado
+ */
+const QUESTION_BANK = [
+  {
+    category: "História de Angola",
+    question: "Em que ano Angola proclamou a sua independência?",
+    options: ["1974", "1975", "1976", "1980"],
+    answerIndex: 1,
+    explanation: "Angola proclamou a independência a 11 de novembro de 1975, pondo fim ao período colonial português."
+  },
+  {
+    category: "História de Angola",
+    question: "Quem foi o primeiro Presidente da República Popular de Angola?",
+    options: ["José Eduardo dos Santos", "Agostinho Neto", "Lúcio Lara", "Holden Roberto"],
+    answerIndex: 1,
+    explanation: "António Agostinho Neto foi o primeiro Presidente de Angola, entre 1975 e 1979."
+  },
+  {
+    category: "Organização Política e Administrativa da República de Angola",
+    question: "Angola é dividida administrativamente em:",
+    options: ["Distritos", "Províncias", "Regiões autónomas", "Cantões"],
+    answerIndex: 1,
+    explanation: "O território angolano está organizado em províncias, cada uma dirigida por um Governador Provincial."
+  },
+  {
+    category: "Organização Política e Administrativa da República de Angola",
+    question: "Segundo a Constituição, Angola é um Estado:",
+    options: ["Federativo", "Democrático de Direito", "Confederado", "Teocrático"],
+    answerIndex: 1,
+    explanation: "O artigo 1.º da Constituição define Angola como um Estado Democrático de Direito, soberano e independente."
+  },
+  {
+    category: "Noções gerais de Administração Pública",
+    question: "Na Administração Pública, o princípio que exige tratamento igual a todos os cidadãos, sem privilégios ou discriminação, chama-se:",
+    options: ["Princípio da legalidade", "Princípio da igualdade", "Princípio da hierarquia", "Princípio da oportunidade"],
+    answerIndex: 1,
+    explanation: "O princípio da igualdade obriga a Administração Pública a tratar todos os cidadãos de forma equitativa perante a lei e os serviços públicos."
+  },
+  {
+    category: "Noções gerais de Administração Pública",
+    question: "Um funcionário público deve pautar a sua atuação, acima de tudo, pelo princípio da:",
+    options: ["Conveniência pessoal", "Legalidade", "Improvisação", "Confidencialidade absoluta com o cidadão"],
+    answerIndex: 1,
+    explanation: "O princípio da legalidade exige que todo o ato da Administração Pública tenha fundamento na lei em vigor."
+  },
+  {
+    category: "Organização e funcionamento do Ministério do Interior",
+    question: "Qual destes órgãos NÃO depende do Ministério do Interior?",
+    options: ["Polícia Nacional de Angola", "Serviço de Migração e Estrangeiros", "Serviço de Investigação Criminal", "Ministério das Relações Exteriores"],
+    answerIndex: 3,
+    explanation: "O Ministério das Relações Exteriores é uma pasta ministerial independente; a Polícia Nacional, o SME e o SIC estão sob tutela do Ministério do Interior."
+  },
+  {
+    category: "Organização e funcionamento do Ministério do Interior",
+    question: "A missão principal do Ministério do Interior é:",
+    options: [
+      "Gerir as relações comerciais externas",
+      "Propor, coordenar e executar a política de ordem interna e segurança pública",
+      "Administrar o sistema judicial",
+      "Definir a política monetária"
+    ],
+    answerIndex: 1,
+    explanation: "O MININT tem por missão propor, formular, coordenar, executar e avaliar a política do Executivo em matéria de ordem interna e segurança pública."
+  },
+  {
+    category: "Patriotismo",
+    question: "O patriotismo, no contexto do serviço público e das forças de segurança, traduz-se principalmente em:",
+    options: [
+      "Colocar interesses pessoais acima dos do país",
+      "Servir com lealdade os interesses e valores da Nação",
+      "Evitar qualquer relação com as instituições do Estado",
+      "Criticar publicamente as instituições sem fundamento"
+    ],
+    answerIndex: 1,
+    explanation: "O patriotismo esperado de um agente do Estado assenta na lealdade, no respeito pelas instituições e no compromisso com o interesse coletivo da Nação."
+  },
+  {
+    category: "Patriotismo",
+    question: "Quais são as cores da bandeira nacional de Angola?",
+    options: [
+      "Verde, amarelo e vermelho",
+      "Vermelho e preto, com emblema amarelo",
+      "Azul e branco",
+      "Verde e branco"
+    ],
+    answerIndex: 1,
+    explanation: "A bandeira de Angola é composta por duas faixas horizontais — vermelho e preto — com um emblema amarelo ao centro, símbolo da luta e das conquistas do povo angolano."
+  }
+];
+
+(function () {
+  "use strict";
+
+  const LETTERS = ["A", "B", "C", "D", "E", "F"];
+
+  const state = {
+    order: [],
+    current: 0,
+    answers: [], // { chosenIndex, correct }
+    locked: false
+  };
+
+  const els = {
+    cover: document.getElementById("screen-cover"),
+    quiz: document.getElementById("screen-quiz"),
+    result: document.getElementById("screen-result"),
+    btnStart: document.getElementById("btnStart"),
+    btnNext: document.getElementById("btnNext"),
+    btnQuit: document.getElementById("btnQuit"),
+    btnRestart: document.getElementById("btnRestart"),
+    metaCount: document.getElementById("metaCount"),
+    quizTab: document.getElementById("quizTab"),
+    progressFill: document.getElementById("progressFill"),
+    qCategory: document.getElementById("qCategory"),
+    qText: document.getElementById("qText"),
+    options: document.getElementById("options"),
+    explanation: document.getElementById("explanation"),
+    verdict: document.getElementById("verdict"),
+    explanationText: document.getElementById("explanationText"),
+    resultTitle: document.getElementById("resultTitle"),
+    resultSummary: document.getElementById("resultSummary"),
+    review: document.getElementById("review"),
+    stamp: document.getElementById("stamp"),
+    stampWord: document.getElementById("stampWord"),
+    stampScore: document.getElementById("stampScore"),
+    processNum: document.getElementById("processNum")
+  };
+
+  function showScreen(id) {
+    document.querySelectorAll("[data-screen]").forEach((s) => {
+      s.hidden = s.id !== id;
+    });
+  }
+
+  function shuffledIndices(n) {
+    const arr = Array.from({ length: n }, (_, i) => i);
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function randomProcessNumber() {
+    const n = Math.floor(100 + Math.random() * 899);
+    return `PROC. Nº ${n}/2026`;
+  }
+
+  function init() {
+    els.metaCount.textContent = String(QUESTION_BANK.length);
+    els.processNum.textContent = randomProcessNumber();
+    els.btnStart.addEventListener("click", startQuiz);
+    els.btnNext.addEventListener("click", nextQuestion);
+    els.btnQuit.addEventListener("click", finishQuiz);
+    els.btnRestart.addEventListener("click", startQuiz);
+    showScreen("screen-cover");
+  }
+
+  function startQuiz() {
+    state.order = shuffledIndices(QUESTION_BANK.length);
+    state.current = 0;
+    state.answers = [];
+    state.locked = false;
+    showScreen("screen-quiz");
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const total = state.order.length;
+    const qIndex = state.order[state.current];
+    const q = QUESTION_BANK[qIndex];
+
+    state.locked = false;
+    els.explanation.hidden = true;
+    els.btnNext.hidden = true;
+
+    els.quizTab.textContent = `Questão ${String(state.current + 1).padStart(2, "0")}/${total}`;
+    els.progressFill.style.width = `${Math.round((state.current / total) * 100)}%`;
+
+    els.qCategory.textContent = q.category;
+    els.qText.textContent = q.question;
+
+    els.options.innerHTML = "";
+    q.options.forEach((optionText, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "option";
+      btn.setAttribute("role", "radio");
+      btn.setAttribute("aria-checked", "false");
+      btn.innerHTML = `<span class="option__letter">${LETTERS[i]}</span><span>${optionText}</span>`;
+      btn.addEventListener("click", () => selectAnswer(i, qIndex));
+      els.options.appendChild(btn);
+    });
+  }
+
+  function selectAnswer(chosenIndex, qIndex) {
+    if (state.locked) return;
+    state.locked = true;
+
+    const q = QUESTION_BANK[qIndex];
+    const isCorrect = chosenIndex === q.answerIndex;
+    state.answers.push({ qIndex, chosenIndex, correct: isCorrect });
+
+    const optionButtons = Array.from(els.options.children);
+    optionButtons.forEach((btn, i) => {
+      btn.disabled = true;
+      if (i === q.answerIndex) {
+        btn.classList.add("is-correct");
+        btn.setAttribute("aria-checked", i === chosenIndex ? "true" : "false");
+      } else if (i === chosenIndex) {
+        btn.classList.add("is-wrong");
+        btn.setAttribute("aria-checked", "true");
+      } else {
+        btn.classList.add("is-muted");
+      }
+    });
+
+    els.verdict.textContent = isCorrect ? "Correto." : "Incorreto.";
+    els.verdict.className = "explanation__verdict " + (isCorrect ? "ok" : "err");
+    els.explanationText.textContent = q.explanation;
+    els.explanation.hidden = false;
+
+    const isLast = state.current === state.order.length - 1;
+    els.btnNext.textContent = isLast ? "Ver resultado" : "Seguinte";
+    els.btnNext.hidden = false;
+    els.btnNext.focus();
+  }
+
+  function nextQuestion() {
+    const isLast = state.current === state.order.length - 1;
+    if (isLast) {
+      finishQuiz();
+      return;
+    }
+    state.current += 1;
+    renderQuestion();
+  }
+
+  function finishQuiz() {
+    const total = QUESTION_BANK.length;
+    const answered = state.answers.length;
+    const correct = state.answers.filter((a) => a.correct).length;
+    const pct = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+
+    els.progressFill.style.width = "100%";
+
+    let stampWord = "REPROVADO";
+    let stampColor = "var(--stamp-red)";
+    if (pct >= 70) { stampWord = "APTO"; stampColor = "var(--ok)"; }
+    else if (pct >= 50) { stampWord = "LIMIAR"; stampColor = "var(--gold)"; }
+    els.stampWord.textContent = stampWord;
+    els.stampScore.textContent = `${correct}/${answered}`;
+    els.stamp.style.setProperty("--stamp-color", stampColor);
+    els.stamp.style.animation = "none";
+    void els.stamp.offsetWidth; // reinicia a animação a cada resultado
+    els.stamp.style.animation = "";
+
+    els.resultTitle.textContent = "Resultado do simulado";
+    els.resultSummary.textContent = answered < total
+      ? `Respondeste a ${answered} de ${total} perguntas · ${correct} corretas (${pct}%).`
+      : `Acertaste ${correct} de ${total} perguntas — ${pct}% de aproveitamento.`;
+
+    els.review.innerHTML = "";
+    state.answers.forEach((a, i) => {
+      const q = QUESTION_BANK[a.qIndex];
+      const li = document.createElement("li");
+      li.className = "review__item " + (a.correct ? "is-ok" : "is-err");
+      const chosenText = q.options[a.chosenIndex];
+      const correctText = q.options[q.answerIndex];
+      li.innerHTML = `
+        <p class="review__q">${i + 1}. ${q.question}</p>
+        <p class="review__answer">A tua resposta: <b>${chosenText}</b></p>
+        ${a.correct ? "" : `<p class="review__answer">Resposta correta: <b>${correctText}</b></p>`}
+      `;
+      els.review.appendChild(li);
+    });
+
+    showScreen("screen-result");
+  }
+
+  init();
+})();
+
+</script>
+</body>
+</html>

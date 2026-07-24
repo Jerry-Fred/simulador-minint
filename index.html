@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Admissão — MININT</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="letterhead" aria-hidden="true">
+    <span class="letterhead__num" id="processNum">PROC. Nº ——/2026</span>
+  </div>
+
+  <main class="sheet">
+
+    <!-- ECRÃ 1 — CAPA -->
+    <section class="screen screen--cover" id="screen-cover" data-screen>
+      <p class="eyebrow">República de Angola · Ministério do Interior</p>
+      <h1 class="cover__title">Simulado de<br>Admissão</h1>
+      <p class="cover__lede">
+        Um teste de preparação, sem inscrição e sem custo, para saberes
+        onde estás antes do exame real. Respostas corrigidas na hora,
+        com a explicação de cada uma.
+      </p>
+
+      <dl class="cover__meta">
+        <div><dt>Perguntas</dt><dd id="metaCount">10</dd></div>
+        <div><dt>Duração média</dt><dd>~6 min</dd></div>
+        <div><dt>Resultado</dt><dd>Imediato</dd></div>
+      </dl>
+
+      <button class="btn btn--primary" id="btnStart" type="button">
+        Iniciar simulado
+      </button>
+      <p class="cover__fineprint">Não é guardado nenhum dado. Podes repetir quantas vezes quiseres.</p>
+    </section>
+
+    <!-- ECRÃ 2 — QUIZ -->
+    <section class="screen screen--quiz" id="screen-quiz" data-screen hidden>
+      <header class="quiz__header">
+        <span class="quiz__tab" id="quizTab">Questão 01/10</span>
+        <div class="quiz__track" role="progressbar" aria-label="Progresso do simulado" aria-valuemin="0" aria-valuemax="100" id="progressBar">
+          <div class="quiz__track-fill" id="progressFill"></div>
+        </div>
+      </header>
+
+      <article class="card">
+        <p class="card__category" id="qCategory">Categoria</p>
+        <h2 class="card__question" id="qText">Pergunta</h2>
+
+        <div class="options" id="options" role="radiogroup" aria-label="Opções de resposta"></div>
+
+        <div class="explanation" id="explanation" hidden>
+          <p class="explanation__verdict" id="verdict"></p>
+          <p class="explanation__text" id="explanationText"></p>
+        </div>
+      </article>
+
+      <div class="quiz__footer">
+        <button class="btn btn--ghost" id="btnQuit" type="button">Terminar agora</button>
+        <button class="btn btn--primary" id="btnNext" type="button" hidden>Seguinte</button>
+      </div>
+    </section>
+
+    <!-- ECRÃ 3 — RESULTADO -->
+    <section class="screen screen--result" id="screen-result" data-screen hidden>
+      <div class="stamp" id="stamp" aria-hidden="true">
+        <span class="stamp__word" id="stampWord">APTO</span>
+        <span class="stamp__score" id="stampScore">10/10</span>
+      </div>
+
+      <h2 class="result__title" id="resultTitle">Resultado do simulado</h2>
+      <p class="result__summary" id="resultSummary"></p>
+
+      <ol class="review" id="review"></ol>
+
+      <div class="result__actions">
+        <button class="btn btn--primary" id="btnRestart" type="button">Repetir simulado</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <p>Protótipo de preparação · não é um serviço oficial do MININT.</p>
+  </footer>
+
+<script src="questions.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
